@@ -63,7 +63,7 @@
                             </label>
                             <label class="flex flex-col gap-2">
                                 <span class="text-sm font-medium">金額</span>
-                                <input id="expenseAmount" type="number" min="0" step="0.01" placeholder="例如：1200" class="border border-slate-200 rounded-lg p-3 focus:outline-none focus:ring-2" />
+                                <input id="expenseAmount" type="number" min="0" step="1" placeholder="例如：1200" class="border border-slate-200 rounded-lg p-3 focus:outline-none focus:ring-2" />
                             </label>
                             <div class="flex items-end">
                                 <button id="addExpense" type="button" class="h-10 px-3 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition">新增項目</button>
@@ -110,16 +110,16 @@
                 nextExpenseId: 1,
             };
 
-            const formatCurrency = (cents) => {
-                return `NT$ ${(cents / 100).toFixed(2)}`;
+            const formatCurrency = (amount) => {
+                return `NT$ ${amount}`;
             };
 
-            const toCents = (value) => {
-                const amount = Number.parseFloat(value);
-                if (Number.isNaN(amount)) {
+            const toAmount = (value) => {
+                const amount = Number.parseInt(value, 10);
+                if (!Number.isInteger(amount)) {
                     return null;
                 }
-                return Math.round(amount * 100);
+                return amount;
             };
 
             const renderPeople = () => {
@@ -168,8 +168,8 @@
                     if (expense.participants.length === 0) {
                         return;
                     }
-                    const baseShare = Math.floor(expense.amountCents / expense.participants.length);
-                    const remainder = expense.amountCents % expense.participants.length;
+                    const baseShare = Math.floor(expense.amount / expense.participants.length);
+                    const remainder = expense.amount % expense.participants.length;
 
                     expense.participants.forEach((personId, index) => {
                         const extra = index === 0 ? remainder : 0;
@@ -198,7 +198,7 @@
                         item.innerHTML = `
                             <div class="flex items-center justify-between">
                                 <span class="font-medium text-slate-900">${expense.name}</span>
-                                <span class="text-slate-700">${formatCurrency(expense.amountCents)}</span>
+                                <span class="text-slate-700">${formatCurrency(expense.amount)}</span>
                             </div>
                             <p class="text-sm text-slate-600">均分成員：${participantNames || '未選擇'}</p>
                         `;
@@ -284,7 +284,7 @@
                 }
 
                 const name = expenseName.value.trim() || '未命名項目';
-                const amountCents = toCents(expenseAmount.value);
+                const amount = toAmount(expenseAmount.value);
                 const selectedParticipants = [
                     ...new Set(
                         Array.from(document.querySelectorAll('.participant-checkbox:checked'))
@@ -292,7 +292,7 @@
                     ),
                 ];
 
-                if (!amountCents || selectedParticipants.length === 0) {
+                if (!amount || selectedParticipants.length === 0) {
                     expenseNotice.textContent = '請輸入完整資訊並至少選擇一位成員。';
                     expenseNotice.classList.remove('hidden');
                     return;
@@ -301,7 +301,7 @@
                 state.expenses.push({
                     id: `expense-${state.nextExpenseId}`,
                     name,
-                    amountCents,
+                    amount,
                     participants: selectedParticipants,
                 });
                 state.nextExpenseId += 1;

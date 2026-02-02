@@ -28,24 +28,24 @@
                     <header class="space-y-2">
                         <p class="text-sm text-slate-500">SharePay</p>
                         <h1 class="text-3xl font-bold">拆賬計算器</h1>
-                        <p class="text-slate-600">先設定總人數，再新增支出項目並選擇均分成員，系統會即時計算每個人需要負擔的金額。</p>
+                        <p class="text-slate-600">先新增成員名字，再新增支出項目並選擇均分成員，系統會即時計算每個人需要負擔的金額。</p>
                     </header>
 
                     <section class="space-y-4" aria-labelledby="people-title">
                         <div class="flex items-center justify-between">
-                            <h2 id="people-title" class="text-xl font-semibold">1. 設定總人數</h2>
+                            <h2 id="people-title" class="text-xl font-semibold">1. 新增成員名字</h2>
                             <p class="text-sm text-slate-500">目前成員：<span id="peopleCount">0</span> 人</p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <label class="flex flex-col gap-2">
-                                <span class="text-sm font-medium">總人數</span>
-                                <input id="totalPeople" type="number" min="1" placeholder="例如：4" class="border border-slate-200 rounded-lg p-3 focus:outline-none focus:ring-2" />
+                                <span class="text-sm font-medium">成員姓名</span>
+                                <input id="personName" type="text" placeholder="例如：小美" class="border border-slate-200 rounded-lg p-3 focus:outline-none focus:ring-2" />
                             </label>
                             <div class="flex items-end">
-                                <button id="setPeople" type="button" class="h-10 px-3 rounded-lg bg-slate-900 text-white font-medium hover:bg-slate-800 transition">建立人數</button>
+                                <button id="addPerson" type="button" class="h-10 px-3 rounded-lg bg-slate-900 text-white font-medium hover:bg-slate-800 transition">新增成員</button>
                             </div>
                             <div class="flex items-end">
-                                <p id="peopleNotice" class="text-sm text-rose-600 hidden">請輸入 1 以上的整數。</p>
+                                <p id="peopleNotice" class="text-sm text-rose-600 hidden">請輸入成員姓名。</p>
                             </div>
                         </div>
                         <div id="peopleList" class="flex flex-wrap gap-2"></div>
@@ -72,7 +72,7 @@
                         <div class="space-y-2">
                             <p class="text-sm font-medium">選擇均分成員</p>
                             <div id="participantList" class="grid grid-cols-1 md:grid-cols-3 gap-2 border border-dashed border-slate-200 rounded-lg p-4 text-sm text-slate-600">
-                                <span>請先建立總人數。</span>
+                                <span>請先新增成員。</span>
                             </div>
                             <p id="expenseNotice" class="text-sm text-rose-600 hidden">請輸入完整資訊並至少選擇一位成員。</p>
                         </div>
@@ -90,8 +90,8 @@
         </div>
 
         <script>
-            const totalPeopleInput = document.getElementById('totalPeople');
-            const setPeopleButton = document.getElementById('setPeople');
+            const personNameInput = document.getElementById('personName');
+            const addPersonButton = document.getElementById('addPerson');
             const peopleNotice = document.getElementById('peopleNotice');
             const peopleList = document.getElementById('peopleList');
             const peopleCount = document.getElementById('peopleCount');
@@ -125,8 +125,8 @@
                 peopleCount.textContent = state.people.length;
 
                 if (state.people.length === 0) {
-                    peopleList.innerHTML = '<span class="text-sm text-slate-500">尚未設定成員。</span>';
-                    participantList.innerHTML = '<span>請先建立總人數。</span>';
+                    peopleList.innerHTML = '<span class="text-sm text-slate-500">尚未新增成員。</span>';
+                    participantList.innerHTML = '<span>請先新增成員。</span>';
                     return;
                 }
 
@@ -216,28 +216,36 @@
                 });
             };
 
-            setPeopleButton.addEventListener('click', () => {
-                const count = Number.parseInt(totalPeopleInput.value, 10);
-                if (!Number.isInteger(count) || count < 1) {
+            const addPerson = () => {
+                const name = personNameInput.value.trim();
+                if (!name) {
                     peopleNotice.classList.remove('hidden');
                     return;
                 }
 
                 peopleNotice.classList.add('hidden');
-                state.people = Array.from({ length: count }, (_, index) => ({
-                    id: `person-${index + 1}`,
-                    name: `第 ${index + 1} 位`,
-                }));
-                state.expenses = [];
+                state.people.push({
+                    id: `person-${state.people.length + 1}`,
+                    name,
+                });
+                personNameInput.value = '';
                 renderPeople();
                 renderExpenses();
+            };
+
+            addPersonButton.addEventListener('click', addPerson);
+            personNameInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addPerson();
+                }
             });
 
             addExpenseButton.addEventListener('click', () => {
                 expenseNotice.classList.add('hidden');
 
                 if (state.people.length === 0) {
-                    expenseNotice.textContent = '請先設定總人數。';
+                    expenseNotice.textContent = '請先新增成員。';
                     expenseNotice.classList.remove('hidden');
                     return;
                 }

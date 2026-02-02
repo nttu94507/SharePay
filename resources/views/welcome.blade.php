@@ -48,7 +48,7 @@
                                 <p id="peopleNotice" class="text-sm text-rose-600 hidden">請輸入成員姓名。</p>
                             </div>
                         </div>
-                        <div id="peopleList" class="flex flex-wrap gap-2"></div>
+                        <div id="peopleList" class="flex flex-col gap-2"></div>
                     </section>
 
                     <section class="space-y-4" aria-labelledby="expense-title">
@@ -131,11 +131,19 @@
                 }
 
                 const fragment = document.createDocumentFragment();
-                state.people.forEach((person) => {
-                    const chip = document.createElement('span');
-                    chip.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full bg-slate-100 text-sm text-slate-700';
-                    chip.textContent = person.name;
-                    fragment.appendChild(chip);
+                state.people.forEach((person, index) => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between gap-3 px-3 py-2 rounded-lg bg-slate-100 text-sm text-slate-700';
+                    row.innerHTML = `
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="px-2 py-1 rounded-full bg-white text-slate-600 text-sm">#${index + 1}</span>
+                            <span class="font-medium truncate">${person.name}</span>
+                        </div>
+                        <button type="button" class="remove-person px-3 py-1 rounded-full bg-slate-900 text-white text-sm hover:bg-slate-800 transition" data-person-id="${person.id}">
+                            刪除
+                        </button>
+                    `;
+                    fragment.appendChild(row);
                 });
                 peopleList.appendChild(fragment);
 
@@ -239,6 +247,28 @@
                     event.preventDefault();
                     addPerson();
                 }
+            });
+
+            peopleList.addEventListener('click', (event) => {
+                const target = event.target;
+                if (!(target instanceof HTMLElement)) {
+                    return;
+                }
+                const removeButton = target.closest('.remove-person');
+                if (!removeButton) {
+                    return;
+                }
+                const personId = removeButton.getAttribute('data-person-id');
+                if (!personId) {
+                    return;
+                }
+                state.people = state.people.filter((person) => person.id !== personId);
+                state.expenses = state.expenses.map((expense) => ({
+                    ...expense,
+                    participants: expense.participants.filter((participantId) => participantId !== personId),
+                }));
+                renderPeople();
+                renderExpenses();
             });
 
             addExpenseButton.addEventListener('click', () => {

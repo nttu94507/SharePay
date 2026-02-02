@@ -106,6 +106,8 @@
             const state = {
                 people: [],
                 expenses: [],
+                nextPersonId: 1,
+                nextExpenseId: 1,
             };
 
             const formatCurrency = (cents) => {
@@ -233,9 +235,10 @@
 
                 peopleNotice.classList.add('hidden');
                 state.people.push({
-                    id: `person-${state.people.length + 1}`,
+                    id: `person-${state.nextPersonId}`,
                     name,
                 });
+                state.nextPersonId += 1;
                 personNameInput.value = '';
                 renderPeople();
                 renderExpenses();
@@ -282,8 +285,12 @@
 
                 const name = expenseName.value.trim() || '未命名項目';
                 const amountCents = toCents(expenseAmount.value);
-                const selectedParticipants = Array.from(document.querySelectorAll('.participant-checkbox:checked'))
-                    .map((checkbox) => checkbox.value);
+                const selectedParticipants = [
+                    ...new Set(
+                        Array.from(document.querySelectorAll('.participant-checkbox:checked'))
+                            .map((checkbox) => checkbox.value),
+                    ),
+                ];
 
                 if (!amountCents || selectedParticipants.length === 0) {
                     expenseNotice.textContent = '請輸入完整資訊並至少選擇一位成員。';
@@ -292,11 +299,12 @@
                 }
 
                 state.expenses.push({
-                    id: `expense-${state.expenses.length + 1}`,
+                    id: `expense-${state.nextExpenseId}`,
                     name,
                     amountCents,
                     participants: selectedParticipants,
                 });
+                state.nextExpenseId += 1;
 
                 expenseName.value = '';
                 expenseAmount.value = '';

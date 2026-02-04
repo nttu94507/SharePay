@@ -54,7 +54,7 @@
                     <section class="space-y-4" aria-labelledby="expense-title">
                         <div class="flex items-center justify-between">
                             <h2 id="expense-title" class="text-xl font-semibold">2. 新增支出項目</h2>
-                            <p class="text-sm text-slate-500">金額需可被均分人數整除，全部人平均分攤（小數點後兩位）。</p>
+                            <p class="text-sm text-slate-500">全部人平均分攤（小數點後兩位）。</p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <label class="flex flex-col gap-2">
@@ -362,12 +362,6 @@
 
                 if (!amountCents || selectedParticipants.length === 0 || !payerId) {
                     expenseNotice.textContent = '請輸入完整資訊並至少選擇一位成員。';
-                    expenseNotice.classList.remove('hidden');
-                    return;
-                }
-
-                if (amountCents % selectedParticipants.length !== 0) {
-                    expenseNotice.textContent = '金額無法平均分攤，請調整金額或成員數。';
                     expenseNotice.classList.remove('hidden');
                     return;
                 }

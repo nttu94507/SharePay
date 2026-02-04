@@ -217,7 +217,12 @@
                         item.innerHTML = `
                             <div class="flex items-center justify-between">
                                 <span class="font-medium text-slate-900">${expense.name}</span>
-                                <span class="text-slate-700">${formatCurrency(expense.amount)}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-700">${formatCurrency(expense.amount)}</span>
+                                    <button type="button" class="remove-expense px-3 py-1 rounded-full bg-slate-900 text-white text-sm hover:bg-slate-800 transition" data-expense-id="${expense.id}">
+                                        刪除
+                                    </button>
+                                </div>
                             </div>
                             <p class="text-sm text-slate-600">均分成員：${participantNames || '未選擇'}</p>
                             <p class="text-sm text-slate-600">代墊人：${payerName}</p>
@@ -292,6 +297,23 @@
                     payerId: expense.payerId === personId ? null : expense.payerId,
                 }));
                 renderPeople();
+                renderExpenses();
+            });
+
+            expenseList.addEventListener('click', (event) => {
+                const target = event.target;
+                if (!(target instanceof HTMLElement)) {
+                    return;
+                }
+                const removeButton = target.closest('.remove-expense');
+                if (!removeButton) {
+                    return;
+                }
+                const expenseId = removeButton.getAttribute('data-expense-id');
+                if (!expenseId) {
+                    return;
+                }
+                state.expenses = state.expenses.filter((expense) => expense.id !== expenseId);
                 renderExpenses();
             });
 

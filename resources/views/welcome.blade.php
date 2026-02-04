@@ -65,6 +65,12 @@
                                 <span class="text-sm font-medium">金額</span>
                                 <input id="expenseAmount" type="number" min="0" step="1" placeholder="例如：1200" class="border border-slate-200 rounded-lg p-3 focus:outline-none focus:ring-2" />
                             </label>
+                            <label class="flex flex-col gap-2">
+                                <span class="text-sm font-medium">代墊人</span>
+                                <select id="expensePayer" class="border border-slate-200 rounded-lg p-3 focus:outline-none focus:ring-2">
+                                    <option value="">請選擇代墊人</option>
+                                </select>
+                            </label>
                             <div class="flex items-end">
                                 <button id="addExpense" type="button" class="h-10 px-3 rounded-lg bg-emerald-600 text-white font-medium hover:bg-emerald-700 transition">新增項目</button>
                             </div>
@@ -98,6 +104,7 @@
             const participantList = document.getElementById('participantList');
             const expenseName = document.getElementById('expenseName');
             const expenseAmount = document.getElementById('expenseAmount');
+            const expensePayer = document.getElementById('expensePayer');
             const addExpenseButton = document.getElementById('addExpense');
             const expenseNotice = document.getElementById('expenseNotice');
             const expenseList = document.getElementById('expenseList');
@@ -129,6 +136,7 @@
                 if (state.people.length === 0) {
                     peopleList.innerHTML = '<span class="text-sm text-slate-500">尚未新增成員。</span>';
                     participantList.innerHTML = '<span>請先新增成員。</span>';
+                    expensePayer.innerHTML = '<option value="">請選擇代墊人</option>';
                     return;
                 }
 
@@ -150,6 +158,7 @@
                 peopleList.appendChild(fragment);
 
                 participantList.innerHTML = '';
+                expensePayer.innerHTML = '<option value="">請選擇代墊人</option>';
                 state.people.forEach((person, index) => {
                     const label = document.createElement('label');
                     label.className = 'flex items-center gap-2 cursor-pointer';
@@ -158,6 +167,11 @@
                         <span>${person.name}</span>
                     `;
                     participantList.appendChild(label);
+
+                    const option = document.createElement('option');
+                    option.value = person.id;
+                    option.textContent = person.name;
+                    expensePayer.appendChild(option);
                 });
             };
 
@@ -175,6 +189,10 @@
                         const extra = index === 0 ? remainder : 0;
                         totalsMap.set(personId, totalsMap.get(personId) + baseShare + extra);
                     });
+
+                    if (expense.payerId) {
+                        totalsMap.set(expense.payerId, totalsMap.get(expense.payerId) - expense.amount);
+                    }
                 });
 
                 return totalsMap;
@@ -194,6 +212,7 @@
                             .map((id) => state.people.find((person) => person.id === id)?.name)
                             .filter(Boolean)
                             .join('、');
+                        const payerName = state.people.find((person) => person.id === expense.payerId)?.name ?? '未指定';
 
                         item.innerHTML = `
                             <div class="flex items-center justify-between">
@@ -201,6 +220,7 @@
                                 <span class="text-slate-700">${formatCurrency(expense.amount)}</span>
                             </div>
                             <p class="text-sm text-slate-600">均分成員：${participantNames || '未選擇'}</p>
+                            <p class="text-sm text-slate-600">代墊人：${payerName}</p>
                         `;
                         fragment.appendChild(item);
                     });
@@ -269,6 +289,7 @@
                 state.expenses = state.expenses.map((expense) => ({
                     ...expense,
                     participants: expense.participants.filter((participantId) => participantId !== personId),
+                    payerId: expense.payerId === personId ? null : expense.payerId,
                 }));
                 renderPeople();
                 renderExpenses();
@@ -285,6 +306,7 @@
 
                 const name = expenseName.value.trim() || '未命名項目';
                 const amount = toAmount(expenseAmount.value);
+                const payerId = expensePayer.value;
                 const selectedParticipants = [
                     ...new Set(
                         Array.from(document.querySelectorAll('.participant-checkbox:checked'))
@@ -292,7 +314,7 @@
                     ),
                 ];
 
-                if (!amount || selectedParticipants.length === 0) {
+                if (!amount || selectedParticipants.length === 0 || !payerId) {
                     expenseNotice.textContent = '請輸入完整資訊並至少選擇一位成員。';
                     expenseNotice.classList.remove('hidden');
                     return;
@@ -303,11 +325,13 @@
                     name,
                     amount,
                     participants: selectedParticipants,
+                    payerId,
                 });
                 state.nextExpenseId += 1;
 
                 expenseName.value = '';
                 expenseAmount.value = '';
+                expensePayer.value = '';
                 renderExpenses();
             });
 

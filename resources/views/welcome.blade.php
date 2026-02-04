@@ -54,7 +54,7 @@
                     <section class="space-y-4" aria-labelledby="expense-title">
                         <div class="flex items-center justify-between">
                             <h2 id="expense-title" class="text-xl font-semibold">2. 新增支出項目</h2>
-                            <p class="text-sm text-slate-500">金額需可被均分人數整除，全部人平均分攤。</p>
+                            <p class="text-sm text-slate-500">金額需可被均分人數整除，全部人平均分攤（小數點後兩位）。</p>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <label class="flex flex-col gap-2">
@@ -63,7 +63,7 @@
                             </label>
                             <label class="flex flex-col gap-2">
                                 <span class="text-sm font-medium">金額</span>
-                                <input id="expenseAmount" type="number" min="0" step="1" placeholder="例如：1200" class="border border-slate-200 rounded-lg p-3 focus:outline-none focus:ring-2" />
+                                <input id="expenseAmount" type="number" min="0" step="0.01" placeholder="例如：1200.50" class="border border-slate-200 rounded-lg p-3 focus:outline-none focus:ring-2" />
                             </label>
                             <label class="flex flex-col gap-2">
                                 <span class="text-sm font-medium">代墊人</span>
@@ -118,16 +118,16 @@
                 selectedParticipants: new Set(),
             };
 
-            const formatCurrency = (amount) => {
-                return `NT$ ${amount}`;
+            const formatCurrency = (cents) => {
+                return `NT$ ${(cents / 100).toFixed(2)}`;
             };
 
-            const toAmount = (value) => {
-                const amount = Number.parseInt(value, 10);
-                if (!Number.isInteger(amount)) {
+            const toAmountCents = (value) => {
+                const amount = Number.parseFloat(value);
+                if (Number.isNaN(amount)) {
                     return null;
                 }
-                return amount;
+                return Math.round(amount * 100);
             };
 
             const renderPeople = () => {
@@ -191,14 +191,14 @@
                     if (expense.participants.length === 0) {
                         return;
                     }
-                    const baseShare = expense.amount / expense.participants.length;
+                    const baseShare = expense.amountCents / expense.participants.length;
 
                     expense.participants.forEach((personId, index) => {
                         totalsMap.set(personId, totalsMap.get(personId) + baseShare);
                     });
 
                     if (expense.payerId) {
-                        totalsMap.set(expense.payerId, totalsMap.get(expense.payerId) - expense.amount);
+                        totalsMap.set(expense.payerId, totalsMap.get(expense.payerId) - expense.amountCents);
                     }
                 });
 
@@ -225,7 +225,7 @@
                             <div class="flex items-center justify-between">
                                 <span class="font-medium text-slate-900">${expense.name}</span>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-slate-700">${formatCurrency(expense.amount)}</span>
+                                    <span class="text-slate-700">${formatCurrency(expense.amountCents)}</span>
                                     <button type="button" class="remove-expense px-3 py-1 rounded-full bg-slate-900 text-white text-sm hover:bg-slate-800 transition" data-expense-id="${expense.id}">
                                         刪除
                                     </button>
@@ -356,17 +356,17 @@
                 }
 
                 const name = expenseName.value.trim() || '未命名項目';
-                const amount = toAmount(expenseAmount.value);
+                const amountCents = toAmountCents(expenseAmount.value);
                 const payerId = expensePayer.value;
                 const selectedParticipants = [...state.selectedParticipants];
 
-                if (!amount || selectedParticipants.length === 0 || !payerId) {
+                if (!amountCents || selectedParticipants.length === 0 || !payerId) {
                     expenseNotice.textContent = '請輸入完整資訊並至少選擇一位成員。';
                     expenseNotice.classList.remove('hidden');
                     return;
                 }
 
-                if (amount % selectedParticipants.length !== 0) {
+                if (amountCents % selectedParticipants.length !== 0) {
                     expenseNotice.textContent = '金額無法平均分攤，請調整金額或成員數。';
                     expenseNotice.classList.remove('hidden');
                     return;
@@ -375,7 +375,7 @@
                 state.expenses.push({
                     id: `expense-${state.nextExpenseId}`,
                     name,
-                    amount,
+                    amountCents,
                     participants: selectedParticipants,
                     payerId,
                 });

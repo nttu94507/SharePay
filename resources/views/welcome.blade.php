@@ -115,6 +115,7 @@
                 expenses: [],
                 nextPersonId: 1,
                 nextExpenseId: 1,
+                selectedParticipants: new Set(),
             };
 
             const formatCurrency = (amount) => {
@@ -137,6 +138,7 @@
                     peopleList.innerHTML = '<span class="text-sm text-slate-500">尚未新增成員。</span>';
                     participantList.innerHTML = '<span>請先新增成員。</span>';
                     expensePayer.innerHTML = '<option value="">請選擇代墊人</option>';
+                    state.selectedParticipants = new Set();
                     return;
                 }
 
@@ -159,14 +161,21 @@
 
                 participantList.innerHTML = '';
                 expensePayer.innerHTML = '<option value="">請選擇代墊人</option>';
-                state.people.forEach((person, index) => {
-                    const label = document.createElement('label');
-                    label.className = 'flex items-center gap-2 cursor-pointer';
-                    label.innerHTML = `
-                        <input type="checkbox" class="participant-checkbox" value="${person.id}" ${index === 0 ? 'checked' : ''} />
-                        <span>${person.name}</span>
-                    `;
-                    participantList.appendChild(label);
+                if (state.selectedParticipants.size === 0 && state.people.length > 0) {
+                    state.selectedParticipants.add(state.people[0].id);
+                }
+                state.people.forEach((person) => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.className = 'participant-chip px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-700 transition hover:shadow-lg';
+                    button.dataset.personId = person.id;
+                    if (state.selectedParticipants.has(person.id)) {
+                        button.classList.add('bg-slate-900', 'text-white');
+                    } else {
+                        button.classList.add('bg-white');
+                    }
+                    button.textContent = person.name;
+                    participantList.appendChild(button);
 
                     const option = document.createElement('option');
                     option.value = person.id;
@@ -296,8 +305,30 @@
                     participants: expense.participants.filter((participantId) => participantId !== personId),
                     payerId: expense.payerId === personId ? null : expense.payerId,
                 }));
+                state.selectedParticipants.delete(personId);
                 renderPeople();
                 renderExpenses();
+            });
+
+            participantList.addEventListener('click', (event) => {
+                const target = event.target;
+                if (!(target instanceof HTMLElement)) {
+                    return;
+                }
+                const chip = target.closest('.participant-chip');
+                if (!chip) {
+                    return;
+                }
+                const personId = chip.getAttribute('data-person-id');
+                if (!personId) {
+                    return;
+                }
+                if (state.selectedParticipants.has(personId)) {
+                    state.selectedParticipants.delete(personId);
+                } else {
+                    state.selectedParticipants.add(personId);
+                }
+                renderPeople();
             });
 
             expenseList.addEventListener('click', (event) => {
@@ -329,12 +360,7 @@
                 const name = expenseName.value.trim() || '未命名項目';
                 const amount = toAmount(expenseAmount.value);
                 const payerId = expensePayer.value;
-                const selectedParticipants = [
-                    ...new Set(
-                        Array.from(document.querySelectorAll('.participant-checkbox:checked'))
-                            .map((checkbox) => checkbox.value),
-                    ),
-                ];
+                const selectedParticipants = [...state.selectedParticipants];
 
                 if (!amount || selectedParticipants.length === 0 || !payerId) {
                     expenseNotice.textContent = '請輸入完整資訊並至少選擇一位成員。';

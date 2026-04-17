@@ -300,7 +300,7 @@
         stamps.splice(0, stamps.length);
         pageCanvases.clear();
 
-        const pdf = await pdfjsLib.getDocument({ data: uploadedPdfBytes }).promise;
+        const pdf = await pdfjsLib.getDocument({ data: uploadedPdfBytes.slice() }).promise;
 
         for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
             const page = await pdf.getPage(pageNumber);
@@ -322,7 +322,7 @@
         if (!hasStroke) return setStatus('請先建立簽名模板。', true);
         if (stamps.length === 0) return setStatus('尚未放置任何簽名貼紙。', true);
 
-        const doc = await PDFDocument.load(uploadedPdfBytes);
+        const doc = await PDFDocument.load(uploadedPdfBytes.slice());
         const embeddedImage = await doc.embedPng(signatureCanvas.toDataURL('image/png'));
 
         for (const stamp of stamps) {
@@ -378,7 +378,7 @@
         if (!file) return;
         if (file.type !== 'application/pdf') return setStatus('請上傳 PDF 檔案。', true);
 
-        uploadedPdfBytes = await file.arrayBuffer();
+        uploadedPdfBytes = new Uint8Array(await file.arrayBuffer());
         isPlacementMode = false;
 
         try {

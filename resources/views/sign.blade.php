@@ -15,26 +15,24 @@
         <p class="text-sm text-slate-600">上傳 PDF → 預覽全部頁面 → 開啟懸浮視窗簽名模板 → 複製簽名貼紙(可縮放) → 下載簽名後 PDF。</p>
     </section>
 
-    <section class="grid gap-6 lg:grid-cols-[2fr_1fr]">
-        <div class="rounded-xl bg-white p-4 shadow-sm">
-            <label class="mb-3 block text-sm font-semibold" for="pdf-input">1) 上傳 PDF 檔案</label>
-            <input id="pdf-input" type="file" accept="application/pdf" class="mb-4 block w-full rounded-lg border border-slate-300 p-2 text-sm">
-
-            <div id="pdf-wrapper" class="space-y-4 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3"></div>
-            <p class="mt-3 text-xs text-slate-500">點「新增簽名貼紙」後，再點任一頁放置。貼紙可拖曳、縮放、雙擊刪除。</p>
+    <section class="mb-4 rounded-xl bg-white p-4 shadow-sm">
+        <div class="mb-3 flex flex-wrap items-center gap-2">
+            <label class="text-sm font-semibold" for="pdf-input">1) 上傳 PDF 檔案</label>
+            <input id="pdf-input" type="file" accept="application/pdf" class="block rounded-lg border border-slate-300 p-2 text-sm">
         </div>
 
-        <div class="rounded-xl bg-white p-4 shadow-sm">
-            <h2 class="mb-3 text-sm font-semibold">2) 操作</h2>
-
-            <div class="flex flex-wrap gap-2">
-                <button id="open-sign-modal" type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100">開啟簽名模板</button>
-                <button id="add-signature-stamp" type="button" class="rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100">新增簽名貼紙</button>
-                <button id="download-pdf" type="button" class="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">下載簽名 PDF</button>
-            </div>
-
-            <p id="status" class="mt-3 text-xs text-slate-500">等待上傳檔案。</p>
+        <div class="flex flex-wrap gap-2">
+            <button id="open-sign-modal" type="button" class="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-100">開啟簽名模板</button>
+            <button id="add-signature-stamp" type="button" class="rounded-lg border border-indigo-300 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100">新增簽名貼紙</button>
+            <button id="download-pdf" type="button" class="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-700">下載簽名 PDF</button>
         </div>
+
+        <p id="status" class="mt-3 text-xs text-slate-500">等待上傳檔案。</p>
+    </section>
+
+    <section class="rounded-xl bg-white p-4 shadow-sm">
+        <div id="pdf-wrapper" class="space-y-4 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3"></div>
+        <p class="mt-3 text-xs text-slate-500">點「新增簽名貼紙」後，再點任一頁放置。貼紙可拖曳、縮放、雙擊刪除。</p>
     </section>
 </main>
 

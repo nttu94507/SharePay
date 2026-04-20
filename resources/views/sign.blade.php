@@ -16,9 +16,12 @@
     </section>
 
     <section class="mb-4 rounded-xl bg-white p-4 shadow-sm">
-        <div class="mb-3 flex flex-wrap items-center gap-2">
-            <label class="text-sm font-semibold" for="pdf-input">1) 上傳 PDF 檔案</label>
-            <input id="pdf-input" type="file" accept="application/pdf" class="block rounded-lg border border-slate-300 p-2 text-sm">
+        <div class="mb-3">
+            <p class="mb-2 text-sm font-semibold">1) 上傳 PDF 檔案（拖曳或點擊）</p>
+            <label id="upload-dropzone" for="pdf-input" class="block cursor-pointer rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-center text-sm text-slate-600 transition hover:border-indigo-400 hover:bg-indigo-50">
+                拖曳 PDF 到這裡，或點擊此區塊選擇檔案
+            </label>
+            <input id="pdf-input" type="file" accept="application/pdf" class="hidden">
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -57,6 +60,7 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://esm.sh/pdfjs-dist@4.8.69/build/pdf.worker.mjs';
 
     const pdfInput = document.getElementById('pdf-input');
+    const uploadDropzone = document.getElementById('upload-dropzone');
     const pdfWrapper = document.getElementById('pdf-wrapper');
     const openModalButton = document.getElementById('open-sign-modal');
     const closeModalButton = document.getElementById('close-sign-modal');
@@ -371,8 +375,7 @@
         }
     });
 
-    pdfInput.addEventListener('change', async (event) => {
-        const [file] = event.target.files;
+    const handlePdfFile = async (file) => {
         if (!file) return;
         if (file.type !== 'application/pdf') return setStatus('請上傳 PDF 檔案。', true);
 
@@ -385,6 +388,27 @@
             console.error(error);
             setStatus('讀取 PDF 失敗，請確認檔案是否正常。', true);
         }
+    };
+
+    pdfInput.addEventListener('change', async (event) => {
+        const [file] = event.target.files;
+        await handlePdfFile(file);
+    });
+
+    uploadDropzone.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        uploadDropzone.classList.add('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
+    });
+
+    uploadDropzone.addEventListener('dragleave', () => {
+        uploadDropzone.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
+    });
+
+    uploadDropzone.addEventListener('drop', async (event) => {
+        event.preventDefault();
+        uploadDropzone.classList.remove('border-indigo-500', 'bg-indigo-50', 'text-indigo-700');
+        const [file] = event.dataTransfer.files;
+        await handlePdfFile(file);
     });
 
     signatureCanvas.addEventListener('mousedown', startDrawing);
